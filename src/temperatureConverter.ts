@@ -5,6 +5,6 @@ export class TemperatureConverter {
     }
 
     celsiusToFahrenheit(celsius: number): number {
-        return (celsius * 9 / 5);;
+        return (celsius * 9 / 5);
     }
 }
