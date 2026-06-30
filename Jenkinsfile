@@ -2,7 +2,7 @@ pipeline {
     agent any 
 
     triggers {
-        cron('H 2 * * *')
+        cron('H/2 * * * *')
     }
 
     stages {
@@ -29,7 +29,7 @@ pipeline {
     post {
         always {
             echo 'Limpando as imagens e containers temporários...'
-            sh 'docker rmi atividade-build:latest atividade-test:latest || true'
+            sh 'docker rmi atividade-build:latest atividade-test:test || true'
         }
     }
 }
