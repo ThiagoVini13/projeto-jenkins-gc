@@ -29,7 +29,7 @@ pipeline {
     post {
         always {
             echo 'Limpando as imagens e containers temporários...'
-            sh 'docker rmi atividade-build:latest atividade-test:test || true'
+            sh 'docker rmi atividade-build:latest atividade-test:latest || true'
         }
     }
 }
