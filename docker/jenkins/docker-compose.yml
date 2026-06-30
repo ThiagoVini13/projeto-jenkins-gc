@@ -2,7 +2,9 @@ version: '3.8'
 
 services:
   jenkins:
-    image: jenkins/jenkins:lts
+    # Constrói a partir do Dockerfile local para instalar o Docker CLI
+    build: .
+    image: jenkins-docker-cli:latest
 
     container_name: jenkins
 
