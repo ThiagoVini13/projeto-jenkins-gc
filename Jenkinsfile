@@ -1,46 +1,35 @@
 pipeline {
-    agent none
+    agent any 
 
-    // Cenário 4: Configuração para execução automática agendada (ex: todos os dias às 2h da manhã)
     triggers {
-        cron('H 2 * * *') 
+        cron('H 2 * * *')
     }
 
     stages {
-        // Cenário 1 e Cenário 2: Build dos fontes em um container Docker
-        stage('Install & Build') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
+        stage('Build in Container') {
             steps {
-                echo 'Iniciando o build no container de Build (node:20-alpine)...'
-                // Se algum comando falhar aqui (ex: erro de compilação do TypeScript no tsc),
-                // o pipeline falha imediatamente com status FAILURE (Cenário 2)
-                sh 'npm ci'
-                sh 'npm run build'
+                echo 'Criando a imagem de build e executando a compilação dentro do container...'
+                sh 'docker build -t atividade-build:latest -f Dockerfile .'
             }
         }
 
-        // Cenário 3: Execução de testes em outro container Docker gerando status "instável" em caso de falha
-        stage('Test') {
-            agent {
-                docker {
-                    image 'node:20-alpine'
-                    reuseNode true
-                }
-            }
+        stage('Test in Container') {
             steps {
-                echo 'Iniciando a execução de testes em outro container (node:20-alpine)...'
+                echo 'Criando a imagem de teste e executando os testes em um novo container...'
                 
-                // catchError intercepta a falha dos testes e define o resultado do build como UNSTABLE
-                // sem interromper ou quebrar totalmente o pipeline com FAILURE
+                sh 'docker build -t atividade-test:latest -f Dockerfile.test .'
+                
                 catchError(buildResult: 'UNSTABLE', stageResult: 'UNSTABLE') {
-                    sh 'npm run test:coverage'
+                    sh 'docker run --rm --name container-testes-${BUILD_NUMBER} atividade-test:latest'
                 }
             }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Limpando as imagens e containers temporários...'
+            sh 'docker rmi atividade-build:latest atividade-test:latest || true'
         }
     }
 }
